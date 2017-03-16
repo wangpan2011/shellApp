@@ -1,0 +1,179 @@
+#!/bin/bash
+CURRENT_PATH=`pwd`;
+DEFAULT_CONFIG_DIRECTORY_NAME=default
+DEFAULT_CONFIG_PATH="$CURRENT_PATH"/"$DEFAULT_CONFIG_DIRECTORY_NAME"
+#CODE_ROOT_PATH="$CURRENT_PATH"/..
+CODE_ROOT_PATH="/Users/jiandanjiekuan/Desktop/sudaibear/PeopleMoney"
+CURRNT_TIME=`date +%Y%m%d%H%M%S`
+
+#BUILD_MODE=$1
+#SERVER_URL=$2
+#APP_VERSION=$3
+#APP_TYPE=$4 #default主应用，jisu极速版，all全部
+BUILD_MODE=debug
+SERVER_URL=https://test-app1.sudaibear.com/v5/apis
+APP_VERSION=master
+APP_TYPE=jisu
+
+echo "CURRENT_PATH = $CURRENT_PATH"
+echo "DEFAULT_CONFIG_DIRECTORY_NAME = $DEFAULT_CONFIG_DIRECTORY_NAME"
+echo "DEFAULT_CONFIG_PATH = $DEFAULT_CONFIG_PATH"
+echo "CODE_ROOT_PATH = $CODE_ROOT_PATH"
+echo "CURRNT_TIME = $CURRNT_TIME"
+
+echo "BUILD_MODE = $BUILD_MODE"
+echo "SERVER_URL = $SERVER_URL"
+echo "APP_VERSION = $APP_VERSION"
+echo "APP_TYPE = $APP_TYPE"
+
+currntPathBaseName=`basename $CURRENT_PATH`
+if [ $currntPathBaseName != shellApps ]; then
+	echo "请在shellApps目录下执行该脚本"
+	exit 1
+fi
+
+function applyConfig()
+{
+	if [ $# -lt 1 ];then
+		echo "请输入配置文件路径"
+		return 1
+	fi
+
+	local configPath=$1
+
+	echo "applyConfig：$configPath"
+
+	cd $configPath #切换到工作目录
+
+	#第一步，替换各种key
+	if [ ! -e ./jdjk.config ]; then
+		echo "应用配置：$configPath 出错，未找到对应的jdjk.config"
+		return 1
+	fi
+	chmod a+x jdjk.config || (echo "增加"$configPath"/jdjk.config执行权限失败" && return 1)
+	source jdjk.config
+
+	#替换DevelopmentTeam
+	#sed -i ""  "s/DevelopmentTeam *= *.*/DevelopmentTeam = ${DevelopmentTeam};/g" "$CODE_ROOT_PATH"/PeopleMoney.xcodeproj/project.pbxproj || (echo "应用配置"$configPath"时，替换DevelopmentTeam失败" && return 1)
+	#sed -i ""  "s/DEVELOPMENT_TEAM *= *.*/DEVELOPMENT_TEAM = ${DevelopmentTeam};/g" "$CODE_ROOT_PATH"/PeopleMoney.xcodeproj/project.pbxproj || (echo "应用配置"$configPath"时，替换DevelopmentTeam失败" && return 1)
+	#echo "替换DevelopmentTeam完成"
+
+	#替换bundleId
+	sed -i ""  "s/PRODUCT_BUNDLE_IDENTIFIER *= *com.peoplemoney.*/PRODUCT_BUNDLE_IDENTIFIER = ${PRODUCT_BUNDLE_IDENTIFIER};/g" "$CODE_ROOT_PATH"/PeopleMoney.xcodeproj/project.pbxproj || (echo "应用配置"$configPath"时，替换DevelopmentTeam失败" && return 1)
+	echo "替换bundleId完成"
+
+	#替换CODE_SIGN_IDENTITY
+	#if [ $BUILD_MODE == debug ]; then
+	#	sign_key=$CODE_SIGN_IDENTITY_DEBUG
+	#	sdk_sign_key=$SDK_SIGN_IDENTITY_DEBUG
+	#else
+	#	sign_key=$CODE_SIGN_IDENTITY_RELEASE
+	#	sdk_sign_key=$SDK_SIGN_IDENTITY_RELEASE
+	#fi
+	#sed -i ""  "s/CODE_SIGN_IDENTITY *= *.*/CODE_SIGN_IDENTITY = \"$sign_key\";/g" "$CODE_ROOT_PATH"/PeopleMoney.xcodeproj/project.pbxproj || (echo "应用配置"$configPath"时，替换DevelopmentTeam失败" && return 1)
+	#sed -i ""  "s/\"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]\" *= *.*/\"CODE_SIGN_IDENTITY[sdk=iphoneos\*]\" = \"$sdk_sign_key\";/g" "$CODE_ROOT_PATH"/PeopleMoney.xcodeproj/project.pbxproj || (echo "应用配置"$configPath"时，替换DevelopmentTeam失败" && return 1)
+	#echo "替换CODE_SIGN_IDENTITY完成"
+
+	#替换server url
+	sed -i ""  "s/^#define *PeopleHost *@.*/#define PeopleHost @\"$SERVER_URL\"/g" "$CODE_ROOT_PATH"/PeopleMoney/IPConfig.h || (echo "应用配置"$configPath"时，替换server url失败" && return 1)
+	echo "替换server url完成"
+
+
+	#替换微信支付的开关
+	sed -i ""  "s/#define *kOpenWexinPayKey *@.*$/#define kOpenWexinPayKey @\"$WeixinPayOn\"/g" "$CODE_ROOT_PATH"/PeopleMoney/AppStringConfig.h || (echo "应用配置"$configPath"时，替换微信支付的开关失败" && return 1)
+	echo "替换微信支付的开关完成"
+
+	#替换md_client_name
+	sed -i ""  "s/#define *kmd_client_name *@.*$/#define kmd_client_name @\"$md_client_name\"/g" "$CODE_ROOT_PATH"/PeopleMoney/AppStringConfig.h || (echo "应用配置"$configPath"时，替换md_client_name失败" && return 1)
+	echo "替换md_client_name完成"
+
+	#替换md_client_channel
+	sed -i ""  "s/#define *kmd_client_channel *@.*$/#define kmd_client_channel @\"$md_client_channel\"/g" "$CODE_ROOT_PATH"/PeopleMoney/AppStringConfig.h || (echo "应用配置"$configPath"时，替换md_client_channel失败" && return 1)
+	echo "替换md_client_channel完成"
+
+	#替换umeng_analytics_key
+	sed -i ""  "s/#define *kUmengAppKey *@.*$/#define kUmengAppKey @\"$umeng_analytics_key\"/g" "$CODE_ROOT_PATH"/PeopleMoney/AppStringConfig.h || (echo "应用配置"$configPath"时，替换umeng_analytics_key失败" && return 1)
+	echo "替换umeng_analytics_key完成"
+
+	#替换baidu_loc_key
+	sed -i ""  "s/#define *kBaiduKay *@.*$/#define kBaiduKay @\"$baidu_loc_key\"/g" "$CODE_ROOT_PATH"/PeopleMoney/AppStringConfig.h || (echo "应用配置"$configPath"时，替换baidu_loc_key失败" && return 1)
+	echo "baidu_loc_key完成"
+
+	#替换app_name
+	sed -i ""  "s/#define *kAppName *@.*$/#define kAppName @\"$app_name\"/g" "$CODE_ROOT_PATH"/PeopleMoney/AppStringConfig.h || (echo "应用配置"$configPath"时，替换app_name失败" && return 1)
+	echo "app_name完成"
+	/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $app_name" "$CODE_ROOT_PATH"/PeopleMoney/Info.plist
+
+    #替换版本号
+	/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $app_version" "$CODE_ROOT_PATH"/PeopleMoney/Info.plist
+	/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $app_version" "$CODE_ROOT_PATH"/PeopleMoney/Info.plist
+
+	#第二步 替换资源文件
+	if [ -e ./resources ]; then
+		cp -r ./resources/ "$CODE_ROOT_PATH"/PeopleMoney/Images.xcassets/ || (echo "复制资源文件报错" && return 1)
+	fi
+
+	cd - > /dev/null #切换回原目录
+}
+
+function buildApp()
+{
+	cd $CODE_ROOT_PATH
+        mkdir -p  buildOutputs/intermediates
+        mkdir -p  buildOutputs/ipa
+	echo "开始编译应用"
+	echo `pwd`
+	xcodebuild -workspace PeopleMoney.xcworkspace -scheme PeopleMoney -configuration $BUILD_MODE clean build -derivedDataPath "$CODE_ROOT_PATH"/buildOutputs/intermediates
+
+	xcrun -sdk iphoneos PackageApplication -v "$CODE_ROOT_PATH"/buildOutputs/intermediates/Build/Products/Release-iphoneos/PeopleMoney.app -o "$CODE_ROOT_PATH"/buildOutputs/ipa/"$IPA_NAME"_"$APP_VERSION"_"$BUILD_MODE"_"$CURRNT_TIME".ipa
+
+	# echo "结果测试开始\n"
+	# echo `pwd`
+	# cd PeopleMoney/Images.xcassets/AppIcon.appiconset
+	# echo `pwd`
+	# echo "图标文件列表开始"
+	# ls -al
+	# echo "图标文件列表结束"
+	# cd - > /dev/null
+	# echo `pwd`
+	# grep --color "DevelopmentTeam *= *.*" "$CODE_ROOT_PATH"/PeopleMoney.xcodeproj/project.pbxproj
+	# grep --color "PRODUCT_BUNDLE_IDENTIFIER *= *.*" "$CODE_ROOT_PATH"/PeopleMoney.xcodeproj/project.pbxproj
+	# grep --color "\"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]\" *= *.*" "$CODE_ROOT_PATH"/PeopleMoney.xcodeproj/project.pbxproj
+
+	# echo "结果测试结束\n"
+	cd - > /dev/null
+}
+#参数  1. 配置文件路径
+function makeAppForConfig()
+{
+
+	if [ $# -lt 1 ];then
+		echo "请输入配置文件路径"
+		return 1
+	fi
+
+	local configPath=$1
+
+	echo "makeAppForConfig：$configPath"
+
+	#先执行一遍default的配置，将代码置位到default状态
+	applyConfig $DEFAULT_CONFIG_PATH || (echo "应用默认config报错" && return 1)
+	applyConfig $configPath || (echo "应用"$configPath"报错" && return 1)
+
+	buildApp || (echo "编译应用"$configPath"报错" && return 1)
+}
+
+for child in ${CURRENT_PATH}/*;
+do
+	if [ -d $child ]; then
+		buildConfigBaseName=`basename $child`
+		echo "####开始：$buildConfigBaseName"
+		if [ $APP_TYPE == $buildConfigBaseName -o $APP_TYPE == all ]; then
+			makeAppForConfig $child || (echo "生成应用失败："$buildConfigBaseName"" && return 1)
+		fi
+	fi
+done
+
+
+
+
