@@ -13,7 +13,7 @@ CURRNT_TIME=`date +%Y%m%d%H%M%S`
 BUILD_MODE=debug
 SERVER_URL=https://test-app1.sudaibear.com/v5/apis
 APP_VERSION=master
-APP_TYPE=jisu
+APP_TYPE=all
 
 echo "CURRENT_PATH = $CURRENT_PATH"
 echo "DEFAULT_CONFIG_DIRECTORY_NAME = $DEFAULT_CONFIG_DIRECTORY_NAME"
@@ -75,7 +75,7 @@ function applyConfig()
 	#echo "替换CODE_SIGN_IDENTITY完成"
 
 	#替换server url
-	sed -i ""  "s/^#define *PeopleHost *@.*/#define PeopleHost @\"$SERVER_URL\"/g" "$CODE_ROOT_PATH"/PeopleMoney/IPConfig.h || (echo "应用配置"$configPath"时，替换server url失败" && return 1)
+	sed -i ""  "s,^#define *PeopleHost *@.*,#define PeopleHost @\"$SERVER_URL\",g" "$CODE_ROOT_PATH"/PeopleMoney/IPConfig.h || (echo "应用配置"$configPath"时，替换server url失败" && return 1)
 	echo "替换server url完成"
 
 
